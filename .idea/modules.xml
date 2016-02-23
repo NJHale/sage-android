@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/sage-android.iml" filepath="$PROJECT_DIR$/sage-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sageclient/sageclient.iml" filepath="$PROJECT_DIR$/sageclient/sageclient.iml" />
+    </modules>
+  </component>
+</project>
