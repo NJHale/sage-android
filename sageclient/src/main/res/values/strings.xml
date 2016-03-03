@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">SAGE Client</string>
     <string name="action_settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="string_poll">Poll for Jobs</string>
 </resources>
