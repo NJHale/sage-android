@@ -12,6 +12,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.sage.sage_android.data.AppInit;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -22,6 +23,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        AppInit.appInit(this);
 
         // Configure sign-in to request the user's ID, email address, and basic profile. ID and
         // basic profile are included in DEFAULT_SIGN_IN.
@@ -42,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
+
+        startService(new Intent(this, TaskService.class));
     }
 
     @Override
