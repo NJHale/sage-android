@@ -14,15 +14,20 @@ public class AndroidNode {
 
     public String androidId;
     public String ownerId;
-    public BuildInfo info;
+    public String nodeId;
+    public String info;
 
     public AndroidNode() {
 
-        TelephonyManager tManager = (TelephonyManager) Storage.context.getSystemService(Context.TELEPHONY_SERVICE);
-        androidId = tManager.getDeviceId();
+        androidId = getUUID();
 
         ownerId = "";
-        BuildInfo info = new BuildInfo();
+        info = new GsonBuilder().create().toJson(new BuildInfo());
+    }
+
+    public static String getUUID() {
+        TelephonyManager tManager = (TelephonyManager) Storage.context.getSystemService(Context.TELEPHONY_SERVICE);
+        return tManager.getDeviceId();
     }
 
     private class BuildInfo {

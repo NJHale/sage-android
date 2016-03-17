@@ -3,11 +3,9 @@ package com.sage.sage_android;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sage.SageTask;
 import com.sage.sage_android.data.AndroidNode;
 import com.sage.sage_android.data.AppInit;
 import com.sage.sage_android.data.Storage;
@@ -20,10 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -85,12 +80,15 @@ public class TaskService extends Service {
 
         private void downloadAndRunTask() {
             try {
-                sendAndroidNode();
-//                Task taskData = getNextReady();
-//                Task.DecodedDex dex = taskData.getDecodedDex();
-//
-//                SageTask task = dex.getSageTask();
-//                byte[] result = task.runTask(taskData.jobId, taskData.getData());
+
+                if("-1".equals(Storage.getInstance().nodeId)) {
+                    checkAndroidNode();
+                }
+
+                Task taskData = getNextReady();
+                Task.DecodedDex dex = taskData.getDecodedDex();
+
+                byte[] result = dex.runSageTask();
             } catch(Exception e) {
                 e.printStackTrace();
             }
@@ -98,27 +96,25 @@ public class TaskService extends Service {
         }
 
         private Task getNextReady() throws IOException {
-//            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs/nextReady/" + Storage.getInstance().androidId);
-//
-//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//
-//            conn.setRequestMethod("POST");
-//            conn.setRequestProperty("Content-Type", "application/json");
-//            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
-//            conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
-//
-//            conn.connect();
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs/nextReady/" + Storage.getInstance().nodeId);
 
-//            InputStream is = conn.getInputStream();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+            conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
+
+            conn.connect();
+
+            InputStream is = conn.getInputStream();
 
             Gson gson = new GsonBuilder().create();
-//            return gson.fromJson(new InputStreamReader(is), Task.class);
-            String json = "{\"jobId\":27,\"ordererId\":1,\"nodeId\":32,\"status\":\"RUNNING\",\"encodedDex\":\"Q2xhc3NXaXRoU2FnZVRhc2s=.ZGV4CjAzNQDvv71Z77+9fxgQY++/ve+/ve+/vU4D77+977+9cO+/vTfqsYXvv73vv70CAABwAAAAeFY0EgAAAAAAAAAANAIAAA4AAABwAAAABwAAAO+/vQAAAAMAAADvv70AAAAAAAAAAAAAAAQAAADvv70AAAABAAAACAEAAO+/vQEAACgBAABwAQAAeAEAAO+/vQEAAO+/vQEAAO+/vQEAAO+/vQEAAO+/vQEAAO+/vQEAAO+/vQEAAO+/vQEAAO+/vQEAAAICAAAGAgAAEAIAAAMAAAAFAAAABwAAAAgAAAAJAAAACgAAAAsAAAAKAAAABQAAAAAAAAAEAAAABgAAAAAAAAAGAAAABgAAAGgBAAABAAAAAAAAAAEAAgANAAAAAwAAAAAAAAAEAAEADAAAAAEAAAABAAAAAwAAAGABAAABAAAAAAAAACUCAAAAAAAAAQABAAEAAAAZAgAABAAAAHAQAgAAAA4ABQAEAAEAAAAeAgAABwAAABoAAgBuEAMAAAAMABEAAAABAAAAAgAAAAIAAAAAAAYABjxpbml0PgAWQ2xhc3NXaXRoU2FnZVRhc2suamF2YQALR2FyYmFnZURhdGEAAUoAAUwAE0xDbGFzc1dpdGhTYWdlVGFzazsAA0xKTAAYTGNvbS9zYWdlL3Rhc2svU2FnZVRhc2s7ABJMamF2YS9sYW5nL09iamVjdDsAEkxqYXZhL2xhbmcvU3RyaW5nOwABVgACW0IACGdldEJ5dGVzAAdydW5UYXNrAAYABw4ACAIAAAcOAAAAAQEA77+977+9BO+/vQIBAe+/vQIADAAAAAAAAAABAAAAAAAAAAEAAAAOAAAAcAAAAAIAAAAHAAAA77+9AAAAAwAAAAMAAADvv70AAAAFAAAABAAAAO+/vQAAAAYAAAABAAAACAEAAAEgAAACAAAAKAEAAAEQAAACAAAAYAEAAAIgAAAOAAAAcAEAAAMgAAACAAAAGQIAAAAgAAABAAAAJQIAAAAQAAABAAAANAIAAA==\",\"data\":\"U2FnZVRva2VuR2FyYmFnZQ==\",\"timeout\":1000000}";
-            return gson.fromJson(json, Task.class);
+            return gson.fromJson(new InputStreamReader(is), Task.class);
         }
 
         private void sendAndroidNode() throws IOException {
-            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs/nextReady/" + Storage.getInstance().androidId);
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/androidNodes");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
@@ -137,8 +133,36 @@ public class TaskService extends Service {
             InputStream is = conn.getInputStream();
             String id = IOUtils.toString(is);
 
-            Storage.getInstance().androidId = id;
+            Storage.getInstance().nodeId = id;
             Storage.saveStorage();
+        }
+
+        private void checkAndroidNode() throws IOException {
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/androidNodes");
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+            conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
+
+            conn.connect();
+
+            Gson gson = new GsonBuilder().create();
+            InputStream is = conn.getInputStream();
+
+            AndroidNode[] nodes = gson.fromJson(new InputStreamReader(is), AndroidNode[].class);
+
+            for(AndroidNode node : nodes) {
+                if(AndroidNode.getUUID().equals(node.androidId)) {
+                    Storage.getInstance().nodeId = node.nodeId;
+                    Storage.saveStorage();
+                    return;
+                }
+            }
+
+            sendAndroidNode();
         }
     }
 
