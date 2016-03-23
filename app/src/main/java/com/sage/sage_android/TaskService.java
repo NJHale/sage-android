@@ -1,7 +1,12 @@
 package com.sage.sage_android;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.BatteryManager;
 import android.os.IBinder;
 
 import com.google.gson.Gson;
@@ -26,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TaskService extends Service {
 
+    public static AtomicBoolean serviceStarted = new AtomicBoolean(false);
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -33,6 +40,7 @@ public class TaskService extends Service {
 
     @Override
     public void onCreate() {
+        serviceStarted.set(true);
         AppInit.appInit(getApplicationContext());
         taskRunner = new TaskRunner();
         taskRunner.start();
@@ -42,11 +50,12 @@ public class TaskService extends Service {
     public void onDestroy() {
         taskRunner.stopRunning();
         taskRunner = null;
+        serviceStarted.set(false);
     }
 
-    TaskRunner taskRunner;
+    public static TaskRunner taskRunner;
 
-    private class TaskRunner extends Thread {
+    public class TaskRunner extends Thread {
 
         private AtomicBoolean running = new AtomicBoolean(true);
         private AtomicBoolean paused = new AtomicBoolean(false);
@@ -54,6 +63,7 @@ public class TaskService extends Service {
 
         public void stopRunning() {
             running.set(false);
+            setPaused(false);
         }
 
         public void setPaused(boolean p) {
@@ -61,10 +71,25 @@ public class TaskService extends Service {
             syncObject.notify();
         }
 
+        public boolean shouldPause() {
+            ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+            Intent intent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+            boolean pluggedIn =  plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB;
+
+            return !mWifi.isConnected() && pluggedIn;
+        }
+
+        public void checkPause() {
+            setPaused(shouldPause());
+        }
+
         public void run() {
 
             while(running.get()) {
-                downloadAndRunTask();
+                checkPause();
 
                 while(paused.get()) {
                     synchronized (syncObject) {
@@ -74,6 +99,10 @@ public class TaskService extends Service {
                             e.printStackTrace();
                         }
                     }
+                }
+
+                if(running.get()) {
+                    downloadAndRunTask();
                 }
             }
         }
