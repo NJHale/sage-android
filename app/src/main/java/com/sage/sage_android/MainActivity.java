@@ -45,8 +45,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
-
-        startService(new Intent(this, TaskService.class));
     }
 
     @Override
