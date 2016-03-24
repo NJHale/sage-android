@@ -8,13 +8,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sage.sage_android.data.AndroidNode;
 import com.sage.sage_android.data.AppInit;
 import com.sage.sage_android.data.Storage;
-import com.sage.sage_android.data.Task;
+import com.sage.sage_android.data.Job;
 
 import org.apache.commons.io.IOUtils;
 
@@ -24,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -68,7 +71,9 @@ public class TaskService extends Service {
 
         public void setPaused(boolean p) {
             paused.set(p);
-            syncObject.notify();
+            synchronized(syncObject) {
+                syncObject.notify();
+            }
         }
 
         public boolean shouldPause() {
@@ -79,7 +84,7 @@ public class TaskService extends Service {
             int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             boolean pluggedIn =  plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB;
 
-            return !mWifi.isConnected() && pluggedIn;
+            return !(mWifi.isConnected() && pluggedIn);
         }
 
         public void checkPause() {
@@ -114,17 +119,34 @@ public class TaskService extends Service {
                     checkAndroidNode();
                 }
 
-                Task taskData = getNextReady();
-                Task.DecodedDex dex = taskData.getDecodedDex();
+                Job taskData = getNextReady();
+                if(taskData == null) {
+                    checkLater();
+                    return;
+                }
+                Job.DecodedDex dex = taskData.getDecodedDex();
 
                 byte[] result = dex.runSageTask();
+                taskData.setResult(result);
+                taskData.status = Job.JobStatus.DONE;
+                submitJob(taskData);
             } catch(Exception e) {
                 e.printStackTrace();
             }
-
         }
 
-        private Task getNextReady() throws IOException {
+        private Timer wakeTimer = new Timer(true);
+        private void checkLater() {
+            wakeTimer.schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+                    checkPause();
+                }
+            }, 50000);
+        }
+
+        private Job getNextReady() throws IOException {
             URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs/nextReady/" + Storage.getInstance().nodeId);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -139,7 +161,7 @@ public class TaskService extends Service {
             InputStream is = conn.getInputStream();
 
             Gson gson = new GsonBuilder().create();
-            return gson.fromJson(new InputStreamReader(is), Task.class);
+            return gson.fromJson(new InputStreamReader(is), Job.class);
         }
 
         private void sendAndroidNode() throws IOException {
@@ -192,6 +214,30 @@ public class TaskService extends Service {
             }
 
             sendAndroidNode();
+        }
+
+        private void submitJob(Job job) throws IOException {
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs");
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+            conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
+
+            conn.connect();
+
+            Gson gson = new GsonBuilder().create();
+            OutputStream os = conn.getOutputStream();
+            IOUtils.write(gson.toJson(job), os);
+            os.close();
+
+            InputStream is = conn.getInputStream();
+            String resp = IOUtils.toString(is);
+
+            Log.d("DEBUG", resp);
+
         }
     }
 

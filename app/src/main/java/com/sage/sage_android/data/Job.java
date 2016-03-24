@@ -17,13 +17,15 @@ import dalvik.system.PathClassLoader;
 /**
  * Created by cyberpirate on 3/16/2016.
  */
-public class Task {
+public class Job {
     public int jobId;
     public int ordererId;
     public JobStatus status;
     public String encodedDex;
     public String data;
     public int timeout;
+    public int bounty;
+    public String result;
 
     private DecodedDex decodedDex;
     public DecodedDex getDecodedDex() {
@@ -64,6 +66,10 @@ public class Task {
     public byte[] getData() {
         if(decodedData == null) decodedData = Base64.decode(data, Base64.DEFAULT);
         return decodedData;
+    }
+
+    public void setResult(byte[] r) {
+        result = Base64.encodeToString(r, Base64.DEFAULT);
     }
 
     public enum JobStatus {
