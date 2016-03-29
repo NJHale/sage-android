@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_id": "sage-1233",
+    "project_number": "665551274466",
+    "name": "Sage"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:665551274466:android:3876fb9c57085669",
+        "client_id": "android:com.sage.sage_android",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.sage.sage_android",
+          "certificate_hash": []
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "665551274466-uj4d40g7ge2irvisckdndg776ngbaqv9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sage.sage_android",
+            "certificate_hash": "19862A1280DD67760BAEAE72A17F7F6B045433EE"
+          }
+        },
+        {
+          "client_id": "665551274466-k9e5oun21che7qamm2ct9bn603dss65n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
