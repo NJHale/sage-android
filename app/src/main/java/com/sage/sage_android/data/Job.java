@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 
 import dalvik.system.PathClassLoader;
 
@@ -20,14 +21,16 @@ import dalvik.system.PathClassLoader;
 public class Job {
     public int jobId;
     public int ordererId;
+    public int nodeId;
+    public Date completion;
     public JobStatus status;
     public String encodedDex;
     public String data;
-    public int timeout;
+    public long timeout;
     public int bounty;
     public String result;
 
-    private DecodedDex decodedDex;
+    private transient DecodedDex decodedDex;
     public DecodedDex getDecodedDex() {
         if(decodedDex == null) decodedDex = new DecodedDex(encodedDex);
         return decodedDex;
@@ -62,7 +65,7 @@ public class Job {
         }
     }
 
-    private byte[] decodedData;
+    private transient byte[] decodedData;
     public byte[] getData() {
         if(decodedData == null) decodedData = Base64.decode(data, Base64.DEFAULT);
         return decodedData;
