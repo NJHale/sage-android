@@ -84,7 +84,7 @@ public class TaskService extends Service {
             int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             boolean pluggedIn =  plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB;
 
-            return !(mWifi.isConnected() && pluggedIn);
+            return !(mWifi.isConnected() && pluggedIn && Storage.getInstance().getRunning());
         }
 
         public void checkPause() {
