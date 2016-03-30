@@ -52,7 +52,7 @@ public class TaskService extends Service {
     @Override
     public void onDestroy() {
         stopRunners();
-        taskRunners = null;
+        taskRunners = new TaskRunner[0];
         serviceStarted.set(false);
     }
 
@@ -82,8 +82,8 @@ public class TaskService extends Service {
             tr.checkPause();
         }
     }
-    
-    public static TaskRunner[] taskRunners;
+
+    public static TaskRunner[] taskRunners = new TaskRunner[0];
 
     public class TaskRunner extends Thread {
 
@@ -156,6 +156,7 @@ public class TaskService extends Service {
                 byte[] result = dex.runSageTask();
                 taskData.setResult(result);
                 taskData.status = Job.JobStatus.DONE;
+                taskData.data = null;
                 submitJob(taskData);
                 Storage.getInstance().addToBounty(taskData.bounty);
             } catch(Exception e) {
