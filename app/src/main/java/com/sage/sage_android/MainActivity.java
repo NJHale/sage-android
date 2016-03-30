@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     int RC_SIGN_IN = 100;
 
     Switch runningEnabled;
+    TextView earnedBounty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 Storage.saveStorage();
             }
         });
+
+        earnedBounty = (TextView) findViewById(R.id.earnedBounty);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bountyUpdater.run();
+    }
+
+    private Runnable bountyUpdater = new Runnable() {
+
+        @Override
+        public void run() {
+            earnedBounty.setText(""+Storage.getInstance().earnedBounty);
+            earnedBounty.postDelayed(this, 1000);
+        }
+    };
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        earnedBounty.removeCallbacks(bountyUpdater);
     }
 
     @Override

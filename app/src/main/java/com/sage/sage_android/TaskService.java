@@ -130,6 +130,7 @@ public class TaskService extends Service {
                 taskData.setResult(result);
                 taskData.status = Job.JobStatus.DONE;
                 submitJob(taskData);
+                Storage.getInstance().addToBounty(taskData.bounty);
             } catch(Exception e) {
                 e.printStackTrace();
             }
@@ -143,7 +144,15 @@ public class TaskService extends Service {
                 public void run() {
                     checkPause();
                 }
-            }, 50000);
+            }, 5000);
+
+            synchronized (syncObject) {
+                try {
+                    syncObject.wait();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         private Job getNextReady() throws IOException {
