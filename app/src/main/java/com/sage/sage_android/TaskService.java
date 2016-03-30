@@ -16,6 +16,7 @@ import com.sage.sage_android.data.AndroidNode;
 import com.sage.sage_android.data.AppInit;
 import com.sage.sage_android.data.Storage;
 import com.sage.sage_android.data.Job;
+import com.sage.sage_android.data.Utils;
 
 import org.apache.commons.io.IOUtils;
 
@@ -45,18 +46,44 @@ public class TaskService extends Service {
     public void onCreate() {
         serviceStarted.set(true);
         AppInit.appInit(getApplicationContext());
-        taskRunner = new TaskRunner();
-        taskRunner.start();
+        startRunners();
     }
 
     @Override
     public void onDestroy() {
-        taskRunner.stopRunning();
-        taskRunner = null;
+        stopRunners();
+        taskRunners = null;
         serviceStarted.set(false);
     }
 
-    public static TaskRunner taskRunner;
+    private void startRunners() {
+        taskRunners = new TaskRunner[Utils.getNumCores()];
+
+        for(int i = 0; i < taskRunners.length; i++) {
+            taskRunners[i] = new TaskRunner();
+            taskRunners[i].start();
+        }
+    }
+
+    private void stopRunners() {
+        for(TaskRunner tr : taskRunners) {
+            tr.stopRunning();
+        }
+    }
+
+    public static void setRunnersPaused(boolean b) {
+        for(TaskRunner tr : taskRunners) {
+            tr.setPaused(b);
+        }
+    }
+
+    public static void runnersCheckPaused() {
+        for(TaskRunner tr : taskRunners) {
+            tr.checkPause();
+        }
+    }
+    
+    public static TaskRunner[] taskRunners;
 
     public class TaskRunner extends Thread {
 

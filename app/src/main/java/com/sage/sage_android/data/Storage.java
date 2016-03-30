@@ -62,7 +62,8 @@ public class Storage {
         synchronized (this) {
             running = b;
         }
-        TaskService.taskRunner.setPaused(!b);
+
+        TaskService.setRunnersPaused(!b);
     }
 
     public void addToBounty(int bounty) {

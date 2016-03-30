@@ -16,7 +16,7 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
         AppInit.appInit(context);
 
         if(TaskService.serviceStarted.get()) {
-            TaskService.taskRunner.checkPause();
+            TaskService.runnersCheckPaused();
         }
     }
 }
