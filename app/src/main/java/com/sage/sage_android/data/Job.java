@@ -50,18 +50,22 @@ public class Job {
 
         public byte[] runSageTask() throws Exception {
 
-            File dexFile = new File(Storage.context.getCodeCacheDir(), name + ".dex");
+            File dexFile = new File(Storage.context.getCodeCacheDir(), jobId + ".dex");
 
-            OutputStream os = new FileOutputStream(dexFile);
-            os.write(dexData);
-            os.close();
+            try {
+                OutputStream os = new FileOutputStream(dexFile);
+                os.write(dexData);
+                os.close();
 
-            PathClassLoader pcl = new PathClassLoader(dexFile.getPath(), ClassLoader.getSystemClassLoader());
-            Class taskClass = pcl.loadClass(name);
-            Object sageTask = taskClass.getConstructors()[0].newInstance();
-            Method m = taskClass.getMethod("runTask", long.class, byte[].class);
-            return (byte[]) m.invoke(sageTask, jobId, getData());
+                PathClassLoader pcl = new PathClassLoader(dexFile.getPath(), ClassLoader.getSystemClassLoader());
 
+                Class taskClass = pcl.loadClass(name);
+                Object sageTask = taskClass.getConstructors()[0].newInstance();
+                Method m = taskClass.getMethod("runTask", long.class, byte[].class);
+                return (byte[]) m.invoke(sageTask, jobId, getData());
+            } finally {
+                dexFile.delete();
+            }
         }
     }
 
@@ -72,7 +76,7 @@ public class Job {
     }
 
     public void setResult(byte[] r) {
-        result = Base64.encodeToString(r, Base64.DEFAULT);
+        result = Base64.encodeToString(r, Base64.NO_WRAP);
     }
 
     public enum JobStatus {

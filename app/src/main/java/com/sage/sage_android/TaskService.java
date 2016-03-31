@@ -57,7 +57,8 @@ public class TaskService extends Service {
     }
 
     private void startRunners() {
-        taskRunners = new TaskRunner[Utils.getNumCores()];
+//        taskRunners = new TaskRunner[Utils.getNumCores()];
+        taskRunners = new TaskRunner[1];
 
         for(int i = 0; i < taskRunners.length; i++) {
             taskRunners[i] = new TaskRunner();
@@ -140,13 +141,14 @@ public class TaskService extends Service {
         }
 
         private void downloadAndRunTask() {
+            Job taskData = null;
             try {
 
                 if("-1".equals(Storage.getInstance().nodeId)) {
                     checkAndroidNode();
                 }
 
-                Job taskData = getNextReady();
+                taskData = getNextReady();
                 if(taskData == null) {
                     checkLater();
                     return;
@@ -157,6 +159,7 @@ public class TaskService extends Service {
                 taskData.setResult(result);
                 taskData.status = Job.JobStatus.DONE;
                 taskData.data = null;
+                taskData.encodedDex = null;
                 submitJob(taskData);
                 Storage.getInstance().addToBounty(taskData.bounty);
             } catch(Exception e) {
