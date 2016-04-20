@@ -59,8 +59,8 @@ public class TaskService extends Service {
     }
 
     private void startRunners() {
-//        taskRunners = new TaskRunner[Utils.getNumCores()];
-        taskRunners = new TaskRunner[1];
+        taskRunners = new TaskRunner[Utils.getNumCores()];
+//        taskRunners = new TaskRunner[1];
 
         for(int i = 0; i < taskRunners.length; i++) {
             taskRunners[i] = new TaskRunner();
