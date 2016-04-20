@@ -14,6 +14,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sage.sage_android.data.AndroidNode;
 import com.sage.sage_android.data.AppInit;
+import com.sage.sage_android.data.GoogleToken;
+import com.sage.sage_android.data.SageToken;
 import com.sage.sage_android.data.Storage;
 import com.sage.sage_android.data.Job;
 import com.sage.sage_android.data.Utils;
@@ -112,7 +114,7 @@ public class TaskService extends Service {
             int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             boolean pluggedIn =  plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB;
 
-            return !(mWifi.isConnected() && pluggedIn && Storage.getInstance().getRunning());
+            return !(/*mWifi.isConnected() && pluggedIn && */Storage.getInstance().getRunning());
         }
 
         public void checkPause() {
@@ -144,38 +146,46 @@ public class TaskService extends Service {
             Job taskData = null;
             try {
 
+                if(Storage.getInstance().sageToken == null || Storage.getInstance().sageToken.isEmpty()) {
+                    refreshToken();
+                }
+
                 if("-1".equals(Storage.getInstance().nodeId)) {
                     checkAndroidNode();
                 }
 
                 taskData = getNextReady();
                 if(taskData == null) {
-                    checkLater();
+                    Storage.getInstance().exceptionString = "";
+                    checkLater(5);
                     return;
                 }
-                Job.DecodedDex dex = taskData.getDecodedDex();
 
-                byte[] result = dex.runSageTask();
+                byte[] result = taskData.runSageTask();
                 taskData.setResult(result);
                 taskData.status = Job.JobStatus.DONE;
                 taskData.data = null;
-                taskData.encodedDex = null;
                 submitJob(taskData);
                 Storage.getInstance().addToBounty(taskData.bounty);
+                Storage.getInstance().exceptionString = "";
             } catch(Exception e) {
                 e.printStackTrace();
+                Storage.getInstance().exceptionString = e.toString();
+                Storage.getInstance().sageToken = "";
+                Storage.saveStorage();
+                checkLater(10);
             }
         }
 
         private Timer wakeTimer = new Timer(true);
-        private void checkLater() {
+        private void checkLater(int seconds) {
             wakeTimer.schedule(new TimerTask() {
 
                 @Override
                 public void run() {
                     checkPause();
                 }
-            }, 5000);
+            }, seconds*1000);
 
             synchronized (syncObject) {
                 try {
@@ -186,14 +196,36 @@ public class TaskService extends Service {
             }
         }
 
-        private Job getNextReady() throws IOException {
-            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs/nextReady/" + Storage.getInstance().nodeId);
+        private void refreshToken() throws IOException {
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage-bison/sageTokens");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+
+            conn.connect();
+
+            Gson gson = new GsonBuilder().create();
+            OutputStream os = conn.getOutputStream();
+            IOUtils.write(gson.toJson(new GoogleToken()), os);
+            os.close();
+
+            InputStream is = conn.getInputStream();
+
+            SageToken st = gson.fromJson(new InputStreamReader(is), SageToken.class);
+            Storage.getInstance().sageToken = st.sageTokenStr;
+            Storage.saveStorage();
+        }
+
+        private Job getNextReady() throws IOException {
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage-bison/jobs/nextReady/" + Storage.getInstance().nodeId);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+//            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
             conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
 
             conn.connect();
@@ -205,13 +237,13 @@ public class TaskService extends Service {
         }
 
         private void sendAndroidNode() throws IOException {
-            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/androidNodes");
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage-bison/androidNodes");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+//            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
             conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
 
             conn.connect();
@@ -229,13 +261,13 @@ public class TaskService extends Service {
         }
 
         private void checkAndroidNode() throws IOException {
-            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/androidNodes");
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage-bison/androidNodes");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+//            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
             conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
 
             conn.connect();
@@ -257,13 +289,13 @@ public class TaskService extends Service {
         }
 
         private void submitJob(Job job) throws IOException {
-            URL url = new URL("http://sage-ws.ddns.net:8080/sage/alpaca/jobs");
+            URL url = new URL("http://sage-ws.ddns.net:8080/sage-bison/jobs");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
+//            conn.setRequestProperty("GoogleToken", Storage.getInstance().googleToken);
             conn.setRequestProperty("SageToken", Storage.getInstance().sageToken);
 
             conn.connect();
@@ -277,7 +309,6 @@ public class TaskService extends Service {
             String resp = IOUtils.toString(is);
 
             Log.d("DEBUG", resp);
-
         }
     }
 

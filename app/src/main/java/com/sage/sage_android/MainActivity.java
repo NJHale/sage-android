@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
     Switch runningEnabled;
     TextView earnedBounty;
+    TextView exceptionText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         });
 
         earnedBounty = (TextView) findViewById(R.id.earnedBounty);
+        exceptionText = (TextView) findViewById(R.id.exceptionText);
     }
 
     @Override
@@ -78,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         @Override
         public void run() {
             earnedBounty.setText(""+Storage.getInstance().earnedBounty);
+            exceptionText.setText(Storage.getInstance().exceptionString);
+
             earnedBounty.postDelayed(this, 1000);
         }
     };
