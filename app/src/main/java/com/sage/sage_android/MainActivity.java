@@ -17,15 +17,16 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.sage.sage_android.data.AppInit;
 import com.sage.sage_android.data.Storage;
+import com.sage.sage_android.ui.BigSwitch;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     GoogleApiClient mGoogleApiClient;
     int RC_SIGN_IN = 100;
 
-    Switch runningEnabled;
     TextView earnedBounty;
     TextView exceptionText;
+    BigSwitch bigSwitch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,19 +55,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             }
         });
 
-        runningEnabled = (Switch) findViewById(R.id.runningEnabled);
-        runningEnabled.setChecked(Storage.getInstance().getRunning());
+        earnedBounty = (TextView) findViewById(R.id.earnedBounty);
+        exceptionText = (TextView) findViewById(R.id.exceptionText);
+        bigSwitch = (BigSwitch) findViewById(R.id.bigSwitch);
 
-        runningEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        bigSwitch.setIsOn(Storage.getInstance().getRunning());
+        bigSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Storage.getInstance().setRunning(isChecked);
+            public void onClick(View v) {
+                bigSwitch.toggle();
+                Storage.getInstance().setRunning(bigSwitch.getIsOn());
                 Storage.saveStorage();
             }
         });
-
-        earnedBounty = (TextView) findViewById(R.id.earnedBounty);
-        exceptionText = (TextView) findViewById(R.id.exceptionText);
     }
 
     @Override
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         @Override
         public void run() {
-            earnedBounty.setText(""+Storage.getInstance().earnedBounty);
+            earnedBounty.setText(String.format("$%.2f", Storage.getInstance().earnedBounty));
             exceptionText.setText(Storage.getInstance().exceptionString);
 
             earnedBounty.postDelayed(this, 1000);

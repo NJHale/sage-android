@@ -1,6 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:background="@color/switch_bg">
 
     <Button
         android:id="@+id/signInButton"
@@ -10,53 +11,25 @@
         android:visibility="gone"
         android:text="Sign in" />
 
-    <LinearLayout
-        android:id="@+id/runningLL"
-        android:padding="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:textSize="20sp"
-            android:text="Run:" />
-
-        <Switch
-            android:paddingLeft="10dp"
-            android:id="@+id/runningEnabled"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_below="@+id/runningLL"
-        android:id="@+id/bountyLine"
-        android:padding="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:textSize="20sp"
-            android:text="Bounty earned:" />
-
-        <TextView
-            android:paddingLeft="10dp"
-            android:id="@+id/earnedBounty"
-            android:textSize="20sp"
-            android:textColor="#5CB85C"
-            android:text="0"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
     <TextView
         android:id="@+id/exceptionText"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/bountyLine"/>
+        android:layout_height="wrap_content" />
+
+    <com.sage.sage_android.ui.BigSwitch
+        android:id="@+id/bigSwitch"
+        android:layout_centerInParent="true"
+        android:layout_width="130dp"
+        android:layout_height="380dp" />
+
+    <TextView
+        android:id="@+id/earnedBounty"
+        android:textSize="40sp"
+        android:textColor="#5CB85C"
+        android:layout_below="@+id/bigSwitch"
+        android:layout_centerHorizontal="true"
+        android:text="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
 </RelativeLayout>
