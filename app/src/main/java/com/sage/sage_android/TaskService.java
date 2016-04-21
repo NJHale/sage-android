@@ -206,7 +206,7 @@ public class TaskService extends Service {
 
             conn.connect();
 
-            Gson gson = new GsonBuilder().create();
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             OutputStream os = conn.getOutputStream();
             IOUtils.write(gson.toJson(new GoogleToken()), os);
             os.close();
@@ -232,7 +232,7 @@ public class TaskService extends Service {
 
             InputStream is = conn.getInputStream();
 
-            Gson gson = new GsonBuilder().create();
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             return gson.fromJson(new InputStreamReader(is), Job.class);
         }
 
@@ -248,7 +248,7 @@ public class TaskService extends Service {
 
             conn.connect();
 
-            Gson gson = new GsonBuilder().create();
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             OutputStream os = conn.getOutputStream();
             IOUtils.write(gson.toJson(new AndroidNode()), os);
             os.close();
@@ -272,7 +272,7 @@ public class TaskService extends Service {
 
             conn.connect();
 
-            Gson gson = new GsonBuilder().create();
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             InputStream is = conn.getInputStream();
 
             AndroidNode[] nodes = gson.fromJson(new InputStreamReader(is), AndroidNode[].class);
@@ -300,7 +300,7 @@ public class TaskService extends Service {
 
             conn.connect();
 
-            Gson gson = new GsonBuilder().create();
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             OutputStream os = conn.getOutputStream();
             IOUtils.write(gson.toJson(job), os);
             os.close();
